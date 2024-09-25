@@ -1,7 +1,6 @@
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
 import { Button } from "../ui/button";
 import NavItems from "./NavItems";
 import MobileNav from "./MobileNav";
@@ -15,7 +14,7 @@ const Header = () => {
             src="/assets/images/logo.svg"
             width={128}
             height={38}
-            alt="Evently Logo"
+            alt="Evently logo"
           />
         </Link>
 
@@ -24,6 +23,7 @@ const Header = () => {
             <NavItems />
           </nav>
         </SignedIn>
+
         <div className="flex w-32 justify-end gap-3">
           <SignedIn>
             <UserButton afterSignOutUrl="/" />

@@ -1,5 +1,5 @@
 "use client";
-
+import React, { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -7,16 +7,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useRouter, useSearchParams } from "next/navigation";
+import { formUrlQuery, removeKeysFromQuery } from "@/lib/utils";
 import { getAllCategories } from "@/lib/actions/category.actions";
 import { ICategory } from "@/lib/mongodb/database/models/category.model";
-import { formUrlQuery, removeKeysFromQuery } from "@/lib/utils";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 
 const CategoryFilter = () => {
   const [categories, setCategories] = useState<ICategory[]>([]);
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     const getCategories = async () => {
@@ -30,8 +29,7 @@ const CategoryFilter = () => {
 
   const onSelectCategory = (category: string) => {
     let newUrl = "";
-
-    if (category && category !== "All") {
+    if (category) {
       newUrl = formUrlQuery({
         params: searchParams.toString(),
         key: "category",
@@ -43,7 +41,6 @@ const CategoryFilter = () => {
         keysToRemove: ["category"],
       });
     }
-
     router.push(newUrl, { scroll: false });
   };
 
@@ -53,19 +50,20 @@ const CategoryFilter = () => {
         <SelectValue placeholder="Category" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="All" className="select-item p-regular-14">
+        <SelectItem value="all" className="select-item p-regular-14">
           All
         </SelectItem>
-
-        {categories.map((category) => (
-          <SelectItem
-            value={category.name}
-            key={category._id}
-            className="select-item p-regular-14"
-          >
-            {category.name}
-          </SelectItem>
-        ))}
+        {categories.map((category) => {
+          return (
+            <SelectItem
+              value={category.name}
+              key={category._id}
+              className="select-item p-regular-14"
+            >
+              {category.name}
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );

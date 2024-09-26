@@ -66,6 +66,67 @@ export const createOrder = async (order: CreateOrderParams) => {
 };
 
 // GET ORDERS BY EVENT
+// export async function getOrdersByEvent({
+//   searchString,
+//   eventId,
+// }: GetOrdersByEventParams) {
+//   try {
+//     await connectToDatabase();
+
+//     if (!eventId) throw new Error("Event ID is required");
+//     const eventObjectId = new ObjectId(eventId);
+//     console.log(eventObjectId);
+//     const orders = await Order.aggregate([
+//       {
+//         $lookup: {
+//           from: "users",
+//           localField: "buyer",
+//           foreignField: "_id",
+//           as: "buyer",
+//         },
+//       },
+//       {
+//         $unwind: "$buyer",
+//       },
+//       {
+//         $lookup: {
+//           from: "events",
+//           localField: "event",
+//           foreignField: "_id",
+//           as: "event",
+//         },
+//       },
+//       {
+//         $unwind: "$event",
+//       },
+//       {
+//         $match: {
+//           $and: [
+//             { eventId: eventObjectId },
+//             { buyer: { $regex: RegExp(searchString, "i") } },
+//           ],
+//         },
+//       },
+//       {
+//         $project: {
+//           _id: 1,
+//           totalAmount: 1,
+//           createdAt: 1,
+//           eventTitle: "$event.title",
+//           eventId: "$event._id",
+//           buyer: {
+//             $concat: ["$buyer.firstName", " ", "$buyer.lastName"],
+//           },
+//         },
+//       },
+//     ]);
+//     console.log(orders);
+//     return JSON.parse(JSON.stringify(orders));
+//   } catch (error) {
+//     handleError(error);
+//   }
+// }
+
 export async function getOrdersByEvent({
   searchString,
   eventId,
@@ -74,8 +135,13 @@ export async function getOrdersByEvent({
     await connectToDatabase();
 
     if (!eventId) throw new Error("Event ID is required");
+
     const eventObjectId = new ObjectId(eventId);
 
+    const eventExists = await Event.findById(eventObjectId);
+    if (!eventExists) {
+      throw new Error(`Event with ID ${eventId} not found`);
+    }
     const orders = await Order.aggregate([
       {
         $lookup: {
@@ -113,16 +179,17 @@ export async function getOrdersByEvent({
       },
       {
         $match: {
-          $and: [
-            { eventId: eventObjectId },
-            { buyer: { $regex: RegExp(searchString, "i") } },
-          ],
+          eventId: eventObjectId,
+          ...(searchString
+            ? { buyer: { $regex: RegExp(searchString, "i") } }
+            : {}),
         },
       },
     ]);
 
     return JSON.parse(JSON.stringify(orders));
   } catch (error) {
+    console.error("Error fetching orders by event:", error);
     handleError(error);
   }
 }
@@ -138,7 +205,6 @@ export async function getOrdersByUser({
 
     const skipAmount = (Number(page) - 1) * limit;
     const conditions = { buyer: userId };
-
     const orders = await Order.distinct("event._id")
       .find(conditions)
       .sort({ createdAt: "desc" })
@@ -157,7 +223,6 @@ export async function getOrdersByUser({
     const ordersCount = await Order.distinct("event._id").countDocuments(
       conditions
     );
-
     return {
       data: JSON.parse(JSON.stringify(orders)),
       totalPages: Math.ceil(ordersCount / limit),

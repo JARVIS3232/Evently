@@ -22,7 +22,9 @@ const CheckoutButton = ({ event }: { event: IEvent }) => {
         <>
           <SignedOut>
             <Button asChild className="button rounded-full" size="lg">
-              <Link href="/sign-in">Get Tickets</Link>
+              <Link href="/sign-in" prefetch={true}>
+                Get Tickets
+              </Link>
             </Button>
           </SignedOut>
 

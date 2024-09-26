@@ -1,5 +1,4 @@
 "use server";
-
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../mongodb/database";
 import User from "../mongodb/database/models/user.model";
@@ -38,11 +37,9 @@ export async function createEvent({ userId, event, path }: CreateEventParams) {
 
     const organizer = await User.findById(userId);
     if (!organizer) throw new Error("Organizer not found");
-    const localTime = moment.tz(Date.now(), "Asia/Kolkata").format();
 
     const newEvent = await Event.create({
       ...event,
-      createdAt: localTime,
       category: event.categoryId,
       organizer: userId,
     });
